@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8214387211359482759}
   - component: {fileID: 3759788297316709006}
   - component: {fileID: 5738392802869511265}
-  - component: {fileID: 4216290924150369893}
+  - component: {fileID: 7373222699691912402}
   m_Layer: 0
   m_Name: CoinGold
   m_TagString: Untagged
@@ -134,7 +134,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &4216290924150369893
+--- !u!114 &7373222699691912402
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

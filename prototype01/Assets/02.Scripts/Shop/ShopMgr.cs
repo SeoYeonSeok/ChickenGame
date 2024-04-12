@@ -23,13 +23,13 @@ public class ShopMgr : MonoBehaviour
 
     IEnumerator MinusCoin(int curC)
     {
-        int cCoin = int.Parse(coinText.text);
+        int cCoin = int.Parse(coinText.text);       
 
         while (cCoin != curC)
         {
             cCoin--;
             coinText.text = cCoin.ToString();
-            //GetComponent<AudioSource>().PlayOneShot(ddiling);
+            //GetComponent<AudioSource>().PlayOneShot(ddiling); // 이거 꼭 추가해야 함!!!
             sprEffect.ShakeText();
             yield return new WaitForSeconds(0.002f);
         }

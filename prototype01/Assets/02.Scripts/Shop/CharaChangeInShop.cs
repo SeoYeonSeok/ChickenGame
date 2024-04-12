@@ -25,7 +25,6 @@ public class CharaChangeInShop : MonoBehaviour
     public int sample8Key;
     public int sample9Key;
 
-    //public ShopButtonColor shopBtns;
     public ShopButtonImage shopBtns;
     public ShopMgr shopMgr;
 
@@ -75,9 +74,7 @@ public class CharaChangeInShop : MonoBehaviour
         {
             ChngPrefabs(charaPrefabs[itemID]);
             PlayerPrefs.SetInt("ItemID", itemID);
-            //shopBtns.AllBtnColorCng();
             shopBtns.AllBtnImageCng();
-            //shopBtns.SelectBtnColorCng(PlayerPrefs.GetInt("ItemID"));
             shopBtns.SelectBtnImageCng(PlayerPrefs.GetInt("ItemID"));
         }
         else // Key가 열리지 않은 상태라면 코인과 가격 검사 함수 실행
@@ -92,6 +89,7 @@ public class CharaChangeInShop : MonoBehaviour
 
         GameObject newChild = Instantiate(prefab, transform);
         newChild.transform.SetParent(chara.transform);
+        newChild.name = prefab.name;
     }
     
     

@@ -255,8 +255,8 @@ public class GameMgr : MonoBehaviour
         if (string.IsNullOrEmpty(inputfield.text) == false)
         {
             PlayerPrefs.SetString("PlayerName", inputfield.text);
-            
-            ReturnMainBtn();
+
+            PressBtnReturnAnim();
         }
     }
 
@@ -270,21 +270,21 @@ public class GameMgr : MonoBehaviour
         beforeGamePanel.gameObject.SetActive(false);
 
         if (num == 1)
-        {
-            ani.SetBool("Shop", true);
+        {            
+            ani.SetTrigger("Shop");
             shopPanel.gameObject.SetActive(true);
             chara.transform.position = charaPos_shop.position;
-            chara.transform.rotation = Quaternion.Euler(0, -135f, 0);
+            chara.transform.rotation = Quaternion.Euler(0, -225f, 0);
             chara.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
         }            
         else if (num == 2)
         {
-            ani.SetBool("Rule", true);
+            ani.SetTrigger("Rule");
             rulePanel.gameObject.SetActive(true);
         }
         else if (num == 3)
         {
-            ani.SetBool("Profile", true);
+            ani.SetTrigger("Profile");
             profilePanel.gameObject.SetActive(true);
 
             inputfield.text = string.Empty;
@@ -294,12 +294,12 @@ public class GameMgr : MonoBehaviour
         }                
         else if (num == 4)
         {
-            ani.SetBool("Rank", true);
+            ani.SetTrigger("Rank");
             rankPanel.gameObject.SetActive(true);
         }
         else if (num == 5)
         {
-            ani.SetBool("Lang", true);
+            ani.SetTrigger("Lang");
             langPanel.gameObject.SetActive(true);
         }
     }
@@ -326,92 +326,9 @@ public class GameMgr : MonoBehaviour
         activeChild.SetActive(false);
         beforeGamePanel.SetActive(true);
 
-        ani.SetBool("Shop", false);
-        ani.SetBool("Rule", false);
-        ani.SetBool("Profile", false);
-        ani.SetBool("Rank", false);
-        ani.SetBool("Lang", false);
+        ani.SetTrigger("Main");
     }
 
-    public void PressBtn(float xpos)
-    {
-        // 움직여야 할 위치
-        Vector3 movPos = new Vector3(xpos, cam.transform.position.y, cam.transform.position.z);
-
-        StartCoroutine(MoveCam(movPos));
-
-        // 패널 UI 처리
-        beforeGamePanel.gameObject.SetActive(false);
-
-        if (xpos == -35f)
-        {
-            shopPanel.gameObject.SetActive(true);
-            chara.transform.position = charaPos_shop.position;
-            chara.transform.rotation = Quaternion.Euler(0, -135f, 0);
-            chara.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-        }
-        else
-        {
-            rulePanel.gameObject.SetActive(true);
-        }
-    }
-
-    public void PressBtn2(float xpos)
-    {
-        // 움직여야 할 위치
-        Vector3 movPos = new Vector3(xpos, cam.transform.position.y, -60f);
-
-        StartCoroutine(MoveCam(movPos));
-
-        // 패널 UI 처리
-        beforeGamePanel.gameObject.SetActive(false);
-
-        if (xpos == 35f)
-        {
-            langPanel.gameObject.SetActive(true);
-        }
-        else if (xpos == -35f)
-        {
-            profilePanel.gameObject.SetActive(true);
-
-            inputfield.text = string.Empty;
-
-            inputfield.placeholder.GetComponent<TMP_Text>().text = PlayerPrefs.GetString("PlayerName");
-            inputfield.placeholder.gameObject.SetActive(true);
-        }
-        else
-        {
-            rankPanel.gameObject.SetActive(true);
-        }
-    }
-    
-
-    public void ReturnMainBtn()
-    {
-        // 움직여야 할 위치
-        Vector3 movPos = new Vector3(0f, cam.transform.position.y, -37f);
-
-        StartCoroutine(MoveCam(movPos));
-
-        // 현재 생성된 패널 중 유일하게 SetActive 되어 있는 패널 찾아서 닫기
-        GameObject activeChild = null;        
-
-        foreach (Transform child in canv.transform)
-        {
-            if (child.gameObject.activeSelf && child.gameObject.name != "FadeImage")
-            {
-                activeChild = child.gameObject;
-                break;
-            }
-        }
-
-        chara.transform.position = charaPos_main.position;        
-        chara.transform.rotation = Quaternion.identity;
-        chara.transform.localScale = new Vector3(0.35f, 0.35f, 0.35f);
-
-        activeChild.SetActive(false);
-        beforeGamePanel.SetActive(true);
-    }
 
     public void DeleteAllPlayerPrefs()
     {

@@ -14,13 +14,18 @@ public class GameOver : MonoBehaviour
 
     public GameObject mainCam;
 
-    public GameObject meat;
+    public GameObject chara;
+    private string charaModelName;
+    public GameObject[] meat;
     public GameObject coin;
 
     public Transform meatFallingPos;
     public Transform coinFallingPos;
 
+    // 삭제할 것들
+    public GameObject[] envs = new GameObject[3];
     public GameObject tileMgr;
+    public GameObject[] particles;
 
     public int remainingCoins;
 
@@ -31,8 +36,9 @@ public class GameOver : MonoBehaviour
     public void Activated(int coins)
     {
         // 0.FadeImage를 검은색으로 Fade 시키고, 카메라를 좌표 값으로 이동시키기(0, 35, -70)
-        fadeCoroutine = StartCoroutine(FadeImage(true));
         remainingCoins = coins;
+        charaModelName = chara.transform.GetChild(0).GetChild(0).name;
+        fadeCoroutine = StartCoroutine(FadeImage(true));
     }
 
     IEnumerator FadeImage(bool fadeIn)
@@ -49,13 +55,14 @@ public class GameOver : MonoBehaviour
             yield return null;
         }
 
-        // 1. Camera를 좌표값으로 옮기기
+        // 1. Camera를 좌표값으로 옮기기     
         Vector3 newPos = new Vector3(0, 35f, -90f);
         mainCam.transform.position = newPos;
-
-        Destroy(tileMgr);
-
-
+        
+        Destroy(chara);        
+        for (int i = 0; i < envs.Length; i++) Destroy(envs[i]);        
+        for (int i = 0; i < particles.Length; i++) Destroy(particles[i]);
+               
         // 2. FadeImage를 다시 원래 색으로 만들기
         fadeImg.color = endColor;
 
@@ -65,10 +72,16 @@ public class GameOver : MonoBehaviour
             alpha -= Time.deltaTime * fadeDuration;
             fadeImg.color = new Color(fadeColor.r, fadeColor.g, fadeColor.b, alpha);
             yield return new WaitForSeconds(0.01f);
-        }        
+        }
 
-        // 3. 죽은 동물 고기 오브젝트를 MeatFallingPos에서 떨구기
-        GameObject go1 = Instantiate(meat);
+        // 3. 죽은 동물 고기 오브젝트를 MeatFallingPos에서 떨구기        
+        GameObject go1 = null;
+
+        if (charaModelName == "Chicken" || charaModelName == "Condor" || charaModelName == "Dragon") 
+            go1 = Instantiate(meat[0]);
+        else if (charaModelName == "Lion" || charaModelName == "BabyCow" || charaModelName == "Dog" || charaModelName == "Pig" || charaModelName == "Cat" || charaModelName == "Penguin") 
+            go1 = Instantiate(meat[1]);
+
         go1.transform.position = meatFallingPos.position;
     }
 
@@ -111,6 +124,10 @@ public class GameOver : MonoBehaviour
     IEnumerator Magnet(GameObject coin)
     {
         yield return new WaitForSeconds(4f);
+
+        // Layer 설정으로 자기들끼리 엉키지 않게 하기
+        int coinLayer = LayerMask.NameToLayer("Coin");
+        coin.layer = coinLayer;
 
         // 현재 위치에서 공중에 띄우기
         Vector3 startPos = coin.transform.position;

@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.UI;
+
 
 public class CharaMove : MonoBehaviour
 {
@@ -59,14 +61,19 @@ public class CharaMove : MonoBehaviour
     public ParticleSystem deadEffect;
     public ParticleSystem coinEffect;
 
-    public LightRotateCorou directLight;
+    public Transform directLight;
 
     public Image img;
     public float fadeSpeed = 2f;
 
     public ParticleSystem snow;
     public ParticleSystem rain;
-    public GameObject dustTrail; 
+    public ParticleSystem sandStorm;
+    public ParticleSystem smog;
+    public GameObject dustTrail;
+
+    public PostProcessVolume ppv;    
+   
 
     private void Start()
     {
@@ -83,7 +90,7 @@ public class CharaMove : MonoBehaviour
 
         transform.GetComponent<CharaChangeInShop>().InitAll(coin);
 
-        balloons = new GameObject[3];
+        balloons = new GameObject[3];        
     }
 
     void Update()
@@ -169,9 +176,10 @@ public class CharaMove : MonoBehaviour
 
     void GameOver()
     {
-        PlayingClip(clips[2]);
+        PlayingClip(clips[2]); // 소리재생
         
         Instantiate(deadEffect, new Vector3(transform.position.x, transform.position.y + 1f, transform.position.z), Quaternion.identity);
+        // 이펙트 생성
 
         // 게임 오버 처리
         GetComponent<Rigidbody>().useGravity = true;
@@ -182,7 +190,8 @@ public class CharaMove : MonoBehaviour
         scroeTxt.gameObject.SetActive(false);
         gameOverPanel.SetActive(true);
 
-        scoreTextOver.text = score.ToString();       
+        scoreTextOver.text = score.ToString();
+        //StartCoroutine(ScoreIncreaseEffect());
 
         // 리스트에 저장하는 과정
         RecordList();
@@ -303,8 +312,6 @@ public class CharaMove : MonoBehaviour
         go.transform.localRotation = Quaternion.Euler(0, 90f, 0);
         
         camAni.enabled = false;
-
-        //directLight.StartCoroutine(directLight.RotateItSelf());
     }
 
     void StartCharaAnimation()
@@ -361,28 +368,104 @@ public class CharaMove : MonoBehaviour
         }        
     }
 
-    void ChangeEnv()
+    void ChangeColorGrading(float[] r, float[] g, float[] b)
     {
+        ColorGrading cg = ppv.profile.GetSetting<ColorGrading>();
+
+        cg.mixerRedOutRedIn.value = r[0];
+        cg.mixerRedOutGreenIn.value = r[1];
+        cg.mixerRedOutBlueIn.value = r[2];
+
+        cg.mixerGreenOutRedIn.value = g[0];
+        cg.mixerGreenOutGreenIn.value = g[1];
+        cg.mixerGreenOutBlueIn.value = g[2];
+        
+        cg.mixerBlueOutRedIn.value = b[0];
+        cg.mixerBlueOutGreenIn.value = b[1];
+        cg.mixerBlueOutBlueIn.value = b[2];           
+    }
+
+    void ChangeSaturation (float sat)
+    {
+        ColorGrading cg = ppv.profile.GetSetting<ColorGrading>();
+
+        cg.saturation.value = sat;
+    }
+
+    void ChangeEnv()
+    {                
         for (int i = 0; i < env.Length; i++)
         {
             env[i].transform.GetChild(envNum).gameObject.SetActive(false);            
         }
 
         rain.gameObject.SetActive(false);
+        sandStorm.gameObject.SetActive(false);
         snow.gameObject.SetActive(false);
+        smog.gameObject.SetActive(false);
 
         envNum++;
         if (envNum > 4) { envNum = 0; }
-        
-        if (envNum == 1) 
+
+        if (envNum == 0)
+        {
+            directLight.localRotation = Quaternion.Euler(0, 0, 0);
+
+            float[] channelR = { 110, 0, 40 };
+            float[] channelG = { 0, 100, 0 };
+            float[] channelB = { 0, 0, 100 };
+
+            ChangeColorGrading(channelR, channelG, channelB);
+            ChangeSaturation(0f);
+        }
+        else if (envNum == 1)
         {
             rain.gameObject.SetActive(true);
-            rain.Play(); 
+            rain.Play();
+            directLight.localRotation = Quaternion.Euler(20, 40, 0);
+
+            float[] channelR = { 100, 0, 0 };
+            float[] channelG = { 0, 100, 0 };
+            float[] channelB = { 0, 0, 160 };
+
+            ChangeColorGrading(channelR, channelG, channelB);
         }
-        else if (envNum == 3) 
+        else if (envNum == 2)
+        {
+            sandStorm.gameObject.SetActive(true);
+            sandStorm.Play();
+            directLight.localRotation = Quaternion.Euler(90, 0, 0);
+
+            float[] channelR = { 180, 40, 20 };
+            float[] channelG = { 0, 100, 0 };
+            float[] channelB = { 0, 0, 80 };
+
+            ChangeColorGrading(channelR, channelG, channelB);
+        }
+        else if (envNum == 3)
         {
             snow.gameObject.SetActive(true);
             snow.Play();
+            directLight.localRotation = Quaternion.Euler(-25, -45, 0);
+
+            float[] channelR = { 100, 0, -100 };
+            float[] channelG = { 0, 100, 0 };
+            float[] channelB = { 0, 0, 200 };
+
+            ChangeColorGrading(channelR, channelG, channelB);
+        }
+        else if (envNum == 4)
+        {
+            smog.gameObject.SetActive(true);
+            smog.Play();
+            directLight.localRotation = Quaternion.Euler(-10, 50, 0);
+
+            float[] channelR = { 100, 0, 0 };
+            float[] channelG = { 0, 100, 0 };
+            float[] channelB = { 0, 0, 100 };
+
+            ChangeColorGrading(channelR, channelG, channelB);
+            ChangeSaturation(-100f);
         }
 
         for (int i = 0; i < env.Length; i++)
@@ -402,7 +485,8 @@ public class CharaMove : MonoBehaviour
             AddScore(1);
             AddScore(1);
             gainCoin++;
-            StartCoroutine(ShowScoreText("+2", other.transform.position));
+            //StartCoroutine(ShowScoreText("+2", other.transform.position));
+            ShowTextPrefab("+2", other.transform.position, 1);
             PlayingClip(clips[1]);
 
             Instantiate(coinEffect, transform.position, Quaternion.identity);
@@ -417,7 +501,8 @@ public class CharaMove : MonoBehaviour
                 PlayingClip(clips[1]);
                 balloon_red = true;
 
-                StartCoroutine(ShowScoreText("Red Balloon!", other.transform.position));                
+                //StartCoroutine(ShowScoreText("Red Balloon!", other.transform.position));                
+                ShowTextPrefab("Red Balloon!", other.transform.position, 2);
 
                 GameObject go = Instantiate(balloon_RGB[0]);
                 go.transform.SetParent(charaModel.transform);
@@ -466,7 +551,8 @@ public class CharaMove : MonoBehaviour
                 PlayingClip(clips[4]); // 소리
                 Instantiate(boomEffect, transform.position, Quaternion.identity); // 이펙트
 
-                Destroy(charaModel);
+                //Destroy(charaModel);
+                charaModel.SetActive(false);
             }
         }
         else if (other.gameObject.CompareTag("Item_BlueB"))
@@ -479,7 +565,8 @@ public class CharaMove : MonoBehaviour
                 PlayingClip(clips[1]);
                 balloon_blue = true;
 
-                StartCoroutine(ShowScoreText("Blue Balloon!", other.transform.position));
+                //StartCoroutine(ShowScoreText("Blue Balloon!", other.transform.position));
+                ShowTextPrefab("Blue Balloon!", other.transform.position, 2);
 
                 GameObject go = Instantiate(balloon_RGB[1]);
                 go.transform.SetParent(charaModel.transform);
@@ -529,7 +616,8 @@ public class CharaMove : MonoBehaviour
                 PlayingClip(clips[4]);
                 Instantiate(boomEffect, transform.position, Quaternion.identity);
 
-                Destroy(charaModel);
+                //Destroy(charaModel);
+                charaModel.SetActive(false);
             }
         }
         else if (other.gameObject.CompareTag("Item_GreenB"))
@@ -542,7 +630,8 @@ public class CharaMove : MonoBehaviour
                 PlayingClip(clips[2]);
                 balloon_green = true;
 
-                StartCoroutine(ShowScoreText("Green Balloon!", other.transform.position));
+                //StartCoroutine(ShowScoreText("Green Balloon!", other.transform.position));
+                ShowTextPrefab("Green Balloon!", other.transform.position, 2);
 
                 GameObject go = Instantiate(balloon_RGB[2]);
                 go.transform.SetParent(charaModel.transform);
@@ -591,7 +680,8 @@ public class CharaMove : MonoBehaviour
                 PlayingClip(clips[4]);
                 Instantiate(boomEffect, transform.position, Quaternion.identity);
 
-                Destroy(charaModel);
+                //Destroy(charaModel);
+                charaModel.SetActive(false);
             }
         }
 
@@ -602,6 +692,36 @@ public class CharaMove : MonoBehaviour
         }        
     }
 
+    public void ShowTextPrefab(string text, Vector3 pos, int aniNum)
+    {
+        TextMeshProUGUI scoreText = Instantiate(scoreTextPrefab, canvasTransform);
+        scoreText.text = text;
+        scoreText.transform.position = Camera.main.WorldToScreenPoint(pos);
+
+        if (aniNum == 1)
+        {
+            scoreText.GetComponent<Animator>().SetInteger("Effect", 1);
+        }
+        else if (aniNum == 2)
+        {
+            scoreText.GetComponent<Animator>().SetInteger("Effect", 2);
+            //StartCoroutine(MoveTextPrefab(scoreText));
+        }
+    }
+
+    IEnumerator MoveTextPrefab(TextMeshProUGUI scoreText) // 미사용
+    {
+        float elapsedTime = 0f;
+        Vector3 startPos = scoreText.transform.position;
+
+        while (elapsedTime < Time.deltaTime)
+        {
+            elapsedTime += Time.deltaTime;
+            float newY = Mathf.Lerp(startPos.y, startPos.y + 250f, elapsedTime / duration);
+            scoreText.transform.position = new Vector3(startPos.x, newY, startPos.z);
+            yield return null;
+        }
+    }
 
     IEnumerator BalloonTimeOut_Red(int balloonsNum)
     {
@@ -656,7 +776,7 @@ public class CharaMove : MonoBehaviour
         yield return null;
     }
 
-    IEnumerator ShowScoreText(string text, Vector3 pos)
+    IEnumerator ShowScoreText(string text, Vector3 pos) // 안쓰는 거임
     {
         TextMeshProUGUI scoreText = Instantiate(scoreTextPrefab, canvasTransform);
         scoreText.text = text;
